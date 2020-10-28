@@ -103,7 +103,7 @@ func main() {
 func run() error {
 	pub, key, err := genKeyPair(algFlag)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot generate key pair: %w", err)
 	}
 
 	sn, err := genSerialNumber()
@@ -138,11 +138,11 @@ func run() error {
 	if cacertFlag != "" {
 		cacert, err = parseCert(cacertFlag)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot parse cacert: %w", err)
 		}
 		cakey, err = parseKey(cakeyFlag)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot parse cakey: %w", err)
 		}
 	}
 
@@ -222,7 +222,7 @@ func genKeyPair(alg string) (interface{}, interface{}, error) {
 		default:
 			return nil, nil, fmt.Errorf("ambiguous elliptic curve type: %s", alg[2:])
 		}
-		pk, err := ecdsa.GenerateKey(c, rand.Reader) // TODO: curve
+		pk, err := ecdsa.GenerateKey(c, rand.Reader)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -236,7 +236,7 @@ func genKeyPair(alg string) (interface{}, interface{}, error) {
 
 func genSerialNumber() (*big.Int, error) {
 	max := big.NewInt(1)
-	max = max.Lsh(max, 20*8)
+	max = max.Lsh(max, 160)
 	max.Add(max, big.NewInt(-1))
 	return rand.Int(rand.Reader, max)
 }

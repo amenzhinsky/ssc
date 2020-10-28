@@ -14,29 +14,29 @@ go get -u github.com/amenzhinsky/ssc
 Generate root certificate:
 
 ```bash
-ssc -common-name="Root CA" -ca -keyout=ca.key.pem -certout=ca.crt.pem
+ssc -common-name="Root CA" -ca -keyout=ca.key -certout=ca.crt
 ```
 
 Generate and validate intermediate CA:
 
 ```bash
-ssc -common-name="Intermediate CA" -ca -keyout=intermediate.key.pem -certout=intermediate.crt.pem
-openssl verify -CAfile=ca.crt.pem intermediate.crt.pem
+ssc -common-name="Intermediate CA" -ca -cacert=ca.crt -cakey=ca.key-keyout=intermediate.key -certout=intermediate.crt
+openssl verify -CAfile=ca.crt intermediate.crt
 ```
 
 Generate server certificate with [Subject Alternative Names](https://tools.ietf.org/html/rfc5280#section-4.2.1.6) and [Extended Key Usage](https://tools.ietf.org/html/rfc5280#section-4.2.1.12) flags signed by the previously generated intermediate CA:
 
 ```bash
-ssc -common-name=server -san-dns=example.com -eku-server -certout=server.crt.pem -keyout=server.key.out -cacert=intermediate.crt.pem -cakey=intermediate.key.pem
+ssc -common-name=server -cacert=intermediate.crt -cakey=intermediate.key -san-dns=example.com -eku-server -certout=server.crt -keyout=server.key
 
-openssl verify -verbose -CAfile=<(cat ca.crt.pem intermediate.crt.pem) server.crt.pem
+openssl verify -CAfile=<(cat ca.crt intermediate.crt) server.crt
 
-cat intermediate.crt.pem server.crt.pem > full.crt.pem
-openssl verify -verbose -CAfile=ca.crt.pem full.crt.pem 
+cat intermediate.crt server.crt > full.crt
+openssl verify -CAfile=ca.crt full.crt 
 ```
 
 You can use `openssl` to inspect generated certificates:
 
 ```bash
-openssl x509 -text -noout -in server.crt.pem
+openssl x509 -text -noout -in server.crt
 ```
